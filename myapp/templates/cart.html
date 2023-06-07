@@ -75,10 +75,14 @@
       </div>
       {% if carts %}
       <h1>Net Price : {{net_price}}</h1>
-      <form method="post" action="{% url 'pay' %}">
+
+      <form method="post" >
         {% csrf_token %}
-        <input type="hidden" name="amount" value="{{net_price}}">
-        <input type="submit" value="Proceed For Payment" class="btn btn-primary">
+        <input type="hidden" id="net_price" name="amount" value="{{net_price}}">
+        <!--<input type="submit" value="Proceed For Payment" class="btn btn-lg btn-primary" id="checkout-button">-->
+        
+        <button type="button" class="btn btn-lg btn-primary" id="checkout-button">Proceed For Payment</button>
+
       </form>
       {% endif %}
     </div>
@@ -110,7 +114,7 @@
                 <img src="{% static 'images/location-white.png' %}" width="18px" alt="">
               </div>
               <p>
-                Address
+                The Terrace, 7th Floor, C.G. Road, Ahmedabad, Gujarat, India
               </p>
             </div>
             <div>
@@ -118,7 +122,7 @@
                 <img src="{% static 'images/telephone-white.png' %}" width="12px" alt="">
               </div>
               <p>
-                +01 1234567890
+                +91 1234567890
               </p>
             </div>
             <div>
@@ -137,7 +141,7 @@
               Informations
             </h5>
             <p>
-              ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              The watch size refers to the dial or face's diameter in millimeters. If you prefer a smaller watch face we recommend 36mm for men, and 32mm or 28mm for women.
             </p>
           </div>
         </div>
@@ -229,6 +233,46 @@
 
   <!-- end info_section -->
 
+  <!-- jQuery Plugins -->
+  <script src="https://js.stripe.com/v3/"></script>
+  
+<script type="text/javascript">
+ // Create an instance of the Stripe object with your publishable API key
+ var stripe = Stripe('pk_test_51NFi1FSIsM0CypdH1tM4Rq2osTyL1u8HJUbZv9etsEeAfQhz9Q4cyCt7WlVEJhWJ1iNzMGh4lpZiHyZUesjT0spR00WiXpQZnb');
+ var checkoutButton = document.getElementById('checkout-button');
+
+ checkoutButton.addEventListener('click', function() {
+ // Create a new Checkout Session using the server-side endpoint you
+ // created in step 3.
+ 
+ fetch('/create-checkout-session/', {
+ method: 'POST',
+  headers:{
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest', //Necessary to work with request.is_ajax()
+
+  },
+    body: JSON.stringify({'post_data':'{{net_price}}'})
+ })
+ .then(function(response) {
+ return response.json();
+ })
+ .then(function(session) {
+ return stripe.redirectToCheckout({ sessionId: session.id });
+ })
+ .then(function(result) {
+ // If `redirectToCheckout` fails due to a browser or network
+ // error, you should display the localized error message to your
+ // customer using `error.message`.
+ if (result.error) {
+ alert(result.error.message);
+ }
+ })
+ .catch(function(error) {
+ console.error('Error:', error);
+ });
+ });
+ </script>
 </body>
 
 </html>

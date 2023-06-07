@@ -5,9 +5,60 @@ from .paytm import generate_checksum, verify_checksum
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 import random
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
+import stripe
+import json
+from django.utils import timezone
 
 # Create your views here.
+
+stripe.api_key = settings.STRIPE_PRIVATE_KEY
+YOUR_DOMAIN = 'http://localhost:8000'
+
+
+@csrf_exempt
+def create_checkout_session(request):
+	amount = int(json.load(request)['post_data'])
+	final_amount=amount*100
+	
+	session = stripe.checkout.Session.create(
+		payment_method_types=['card'],
+		line_items=[{
+			'price_data': {
+				'currency': 'inr',
+				'product_data': {
+					'name': 'Checkout Session Data',
+					},
+				'unit_amount': final_amount,
+				},
+			'quantity': 1,
+			}],
+		mode='payment',
+		success_url=YOUR_DOMAIN + '/success.html',
+		cancel_url=YOUR_DOMAIN + '/cancel.html',)
+	return JsonResponse({'id': session.id})
+
+
+def success(request):
+	user=User.objects.get(email=request.session['email'])
+	carts=Cart.objects.filter(user=user,payment_status=False)
+	for i in carts:
+		i.payment_status=True
+		#i.ordered_date=timezone.now()
+		i.save()
+		#product=Product.objects.get(id=i.product.id)
+		#product.cart_status=False
+		#product.save()
+		
+	carts=Cart.objects.filter(user=user,payment_status=False)
+	request.session['cart_count']=len(carts)
+	return render(request,'success.html')
+
+def cancel(request):
+	return render(request,'cancel.html')
+
+
+
 
 def validate_signup(request):
 	email=request.GET.get('email')
@@ -434,3 +485,6 @@ def seller_profile(request):
 		return render(request,'seller_profile.html',{'user':user,'msg':msg})
 	else:
 		return render(request,'seller_profile.html',{'user':user})
+
+
+

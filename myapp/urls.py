@@ -34,4 +34,7 @@ urlpatterns = [
     path('seller_contact/',views.seller_contact,name='seller_contact'),
     path('seller_profile/',views.seller_profile,name='seller_profile'),
     path('ajax/validate_email/',views.validate_signup,name='validate_email'),
+    path('create-checkout-session/', views.create_checkout_session, name='payment'),
+    path('success.html/', views.success,name='success'),
+    path('cancel.html/', views.cancel,name='cancel'),
 ]

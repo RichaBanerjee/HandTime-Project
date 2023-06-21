@@ -13,7 +13,7 @@ from django.utils import timezone
 # Create your views here.
 
 stripe.api_key = settings.STRIPE_PRIVATE_KEY
-YOUR_DOMAIN = 'http://localhost:8000'
+YOUR_DOMAIN = 'http://handtimeproject.pythonanywhere.com'
 
 
 @csrf_exempt
